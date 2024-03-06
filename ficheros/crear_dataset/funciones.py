@@ -1,5 +1,5 @@
 
-#FICHERO CON TODAS LAS DIFERENTES FUNCIONES QUE CREAN TRAZAS FALSAS !!!!!!!!!!
+#FICHERO CON TODAS LAS DIFERENTES FUNCIONES QUE CREAN TRAZAS FALSAS !!!!!!!!!! lo importo en todoJunto-clase.ipynb
 from PIL import Image, ImageDraw, ImageFilter
 import matplotlib.pyplot as plt
 import numpy as np
@@ -346,3 +346,58 @@ def trazas_tipo4(ruta_imagen,ruta_guardado_img,ruta_guardado_unet):
     imagen_trazas = Image.fromarray(solUNET)
     imagen_trazas.save(ruta_guardado_unet)
 
+#--------------------------------------------- TIPO 5 ---------------------------------------------------------------
+#traza roja normal
+def trazas_tipo5(ruta_imagen,ruta_guardado_img,ruta_guardado_unet):
+    # Cargar la imagen
+    image = Image.open(ruta_imagen)
+    num_trazas = random.randint(1, 4)
+
+    # Obtener las dimensiones de la imagen
+    width, height = image.size
+    # Crear una matriz NumPy del mismo tamaño que la imagen, inicializada con ceros
+    solUNET = np.zeros((height, width), dtype=np.uint8)
+
+    # Crear una nueva imagen transparente
+    transparent_image = Image.new('RGBA', (width, height), (0, 0, 0, 0))
+
+    # Crear un objeto ImageDraw para dibujar en la imagen transparente
+    draw = ImageDraw.Draw(transparent_image)
+
+    for _ in range(num_trazas):
+        # Coordenadas aleatorias de inicio y fin de la línea
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+
+        # Asegurar que las coordenadas estén dentro de los límites de la imagen
+        x1 = max(0, min(x1, width - 1))
+        x2 = max(0, min(x2, width - 1))
+        y1 = max(0, min(y1, height - 1))
+        y2 = max(0, min(y2, height - 1))
+
+        # Opacidad aleatoria
+        alpha = random.randint(20, 255)
+
+        # Dibujar una línea aleatoria en la imagen transparente con opacidad aleatoria
+        color = (255, 0, 0, alpha)
+        draw.line([(x1, y1), (x2, y2)], fill=color, width=2)
+        
+        # Obtener los píxeles dibujados en la imagen transparente
+        pixels = transparent_image.getdata()
+
+        # Actualizar los valores de la matriz para representar la línea dibujada
+        for y in range(height):
+            for x in range(width):
+                if pixels[y * width + x][3] > 0:  # Verificar si el píxel es transparente
+                    solUNET[y, x] = 255  # Blanco
+
+    # Superponer la imagen transparente sobre la imagen original con opacidad
+    composite_image = Image.alpha_composite(image.convert('RGBA'), transparent_image)
+
+
+     # Guardar la imagen resultante
+    composite_image.save(ruta_guardado_img, format="PNG")
+
+    # Guardar matriz
+    imagen_trazas = Image.fromarray(solUNET)
+    imagen_trazas.save(ruta_guardado_unet)
